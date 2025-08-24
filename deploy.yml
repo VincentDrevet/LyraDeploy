@@ -1,0 +1,67 @@
+---
+- name: Install Lyra system
+  hosts: lyra
+  vars_files:
+    - credentials.yml
+  tasks:
+
+    - name: Add community repo
+      lineinfile:
+        path: /etc/apk/repositories
+        line: "http://dl-cdn.alpinelinux.org/alpine/v{{ ansible_distribution_version | regex_replace('\\.\\d+$', '') }}/community"
+        state: present
+      become: true
+      become_method: su
+
+    - name: Install python + pip + virtualenv
+      community.general.apk:
+        name: python3 py3-pip py3-virtualenv
+        update_cache: true
+        state: present
+      become: yes
+      become_method: su
+
+    - name: clone LyraApi git repository
+      ansible.builtin.git:
+        repo: 'https://github.com/VincentDrevet/LyraAPI.git'
+        dest: "/opt/LyraAPI"
+      become: true
+      become_method: su
+
+    - name: Install requirements
+      ansible.builtin.pip:
+        requirements: /opt/LyraAPI/requirements.txt
+        virtualenv_python: python3.12
+        virtualenv: /opt/LyraAPI/.venv
+      become: yes
+      become_method: su
+
+    - name: create .env file
+      ansible.builtin.template:
+        src: config/.env.j2
+        dest: /opt/LyraAPI/app/.env
+        owner: root
+        group: root
+        mode: 640
+      become: true
+      become_method: su
+        
+    - name: copy lyra api service vars_files
+      ansible.builtin.copy:
+        src: config/lyra_api
+        dest: /etc/init.d/lyra_api
+        owner: root
+        group: root
+        mode: 750
+      become: true
+      become_method: su
+
+    - name: enable service
+      ansible.builtin.service:
+        name: lyra_api
+        state: started
+        enabled: true
+      become: true
+      become_method: su
+      
+        

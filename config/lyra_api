@@ -1,0 +1,13 @@
+#!/sbin/openrc-run
+
+
+name="Lyra api"
+description="Lyra rest api"
+command="/opt/LyraAPI/.venv/bin/fastapi run"
+command_background=true
+pidfile="/run/lyra_api.pid"
+
+start_pre()
+{
+    cd /opt/LyraAPI
+}
