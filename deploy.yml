@@ -15,7 +15,7 @@
 
     - name: Install python + pip + virtualenv
       community.general.apk:
-        name: python3 py3-pip py3-virtualenv
+        name: python3 py3-pip py3-virtualenv zip
         update_cache: true
         state: present
       become: yes
@@ -46,7 +46,7 @@
       become: true
       become_method: su
         
-    - name: copy lyra api service vars_files
+    - name: copy lyra api service
       ansible.builtin.copy:
         src: config/lyra_api
         dest: /etc/init.d/lyra_api
@@ -56,7 +56,7 @@
       become: true
       become_method: su
 
-    - name: enable service
+    - name: enable service lyra_api
       ansible.builtin.service:
         name: lyra_api
         state: started
@@ -64,4 +64,41 @@
       become: true
       become_method: su
       
-        
+    - name: install mosquitto
+      community.general.apk:
+        name: mosquitto
+        update_cache: true
+        state: present
+      become: yes
+      become_method: su
+    
+    - name: create mosquitto config file
+      ansible.builtin.template:
+        src: config/mosquitto.conf.j2
+        dest: /etc/mosquitto/mosquitto.conf
+        owner: root
+        group: root
+        mode: 644
+      become: true
+      become_method: su
+
+    - name: Download authentication plugin
+      ansible.builtin.get_url:
+        url: https://github.com/VincentDrevet/LyraMosquittoPlugin/releases/download/v1.0.0/linux-aarch64.zip
+        dest: /tmp/
+
+    - name: unzip plugin
+      ansible.builtin.unarchive:
+        src: /tmp/linux-aarch64.zip
+        dest: /var/lib
+        remote_src: yes
+      become: true
+      become_method: su
+
+    - name: enable service mosquitto
+      ansible.builtin.service:
+        name: mosquitto
+        state: started
+        enabled: true
+      become: true
+      become_method: su

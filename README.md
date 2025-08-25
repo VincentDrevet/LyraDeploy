@@ -25,6 +25,10 @@ lyra_hosts:
       ansible_port: <ssh port>
       ansible_host: <dns/ip>
       ansible_user: <user>
+      api_protocol: <http/https>
+      api_host: <dns/ip>
+      api_port: <port>
+      api_auth_endpoint: </auth/xxxx>
 ```
 
 4) Run playbook
